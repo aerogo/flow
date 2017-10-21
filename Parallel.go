@@ -8,13 +8,10 @@ func Parallel(funcs ...func()) {
 	wg.Add(len(funcs))
 
 	for _, fun := range funcs {
-		// Bind iterator to a local variable so we can capture it in the closure.
-		task := fun
-
-		go func() {
+		go func(task func()) {
 			task()
 			wg.Done()
-		}()
+		}(fun)
 	}
 
 	wg.Wait()
