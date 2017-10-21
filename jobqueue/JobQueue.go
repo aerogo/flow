@@ -3,7 +3,6 @@ package jobqueue
 import (
 	"runtime"
 	"sync"
-	"sync/atomic"
 )
 
 // Results maps jobs to their corresponding results.
@@ -11,18 +10,16 @@ type Results map[interface{}]interface{}
 
 // JobQueue is a queue with inputs and outputs that are saved in a hash map.
 type JobQueue struct {
-	jobCount    uint64
 	jobs        chan interface{}
-	done        chan bool
+	wg          sync.WaitGroup
 	results     Results
 	resultsLock sync.RWMutex
 }
 
 // New creates a new job queue.
-func New(work func(interface{}) interface{}, bufferSize int) *JobQueue {
+func New(work func(interface{}) interface{}) *JobQueue {
 	pool := &JobQueue{}
-	pool.jobs = make(chan interface{}, bufferSize)
-	pool.done = make(chan bool, bufferSize)
+	pool.jobs = make(chan interface{})
 	pool.results = make(Results)
 
 	for w := 1; w <= runtime.NumCPU(); w++ {
@@ -34,7 +31,9 @@ func New(work func(interface{}) interface{}, bufferSize int) *JobQueue {
 				pool.results[job] = result
 				pool.resultsLock.Unlock()
 
-				pool.done <- true
+				pool.wg.Done()
+
+				// pool.done <- true
 			}
 		}()
 	}
@@ -44,17 +43,12 @@ func New(work func(interface{}) interface{}, bufferSize int) *JobQueue {
 
 // Queue ...
 func (pool *JobQueue) Queue(job interface{}) {
+	pool.wg.Add(1)
 	pool.jobs <- job
-	atomic.AddUint64(&pool.jobCount, 1)
 }
 
 // Wait ...
 func (pool *JobQueue) Wait() Results {
-	jobCount := atomic.LoadUint64(&pool.jobCount)
-
-	for i := uint64(0); i < jobCount; i++ {
-		<-pool.done
-	}
-
+	pool.wg.Wait()
 	return pool.results
 }

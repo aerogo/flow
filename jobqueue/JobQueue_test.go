@@ -13,7 +13,7 @@ func TestJobQueue(t *testing.T) {
 		return len(text)
 	}
 
-	jobs := jobqueue.New(work, 0)
+	jobs := jobqueue.New(work)
 
 	jobs.Queue("Hello World")
 	jobs.Queue("Test")
