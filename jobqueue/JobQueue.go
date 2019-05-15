@@ -32,8 +32,6 @@ func New(work func(interface{}) interface{}) *JobQueue {
 				pool.resultsLock.Unlock()
 
 				pool.wg.Done()
-
-				// pool.done <- true
 			}
 		}()
 	}
@@ -41,13 +39,13 @@ func New(work func(interface{}) interface{}) *JobQueue {
 	return pool
 }
 
-// Queue ...
+// Queue queues up a new job.
 func (pool *JobQueue) Queue(job interface{}) {
 	pool.wg.Add(1)
 	pool.jobs <- job
 }
 
-// Wait ...
+// Wait waits for the job queue to complete.
 func (pool *JobQueue) Wait() Results {
 	pool.wg.Wait()
 	return pool.results

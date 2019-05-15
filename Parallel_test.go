@@ -1,6 +1,7 @@
 package flow_test
 
 import (
+	"sync/atomic"
 	"testing"
 
 	"github.com/aerogo/flow"
@@ -9,15 +10,30 @@ import (
 )
 
 func TestParallel(t *testing.T) {
-	a := 0
-	b := 0
+	a := int64(0)
+	b := int64(0)
 
 	flow.Parallel(func() {
-		a = 13
+		atomic.AddInt64(&a, 1)
 	}, func() {
-		b = 10
+		atomic.AddInt64(&b, 1)
 	})
 
-	assert.Equal(t, 13, a)
-	assert.Equal(t, 10, b)
+	assert.Equal(t, int64(1), a)
+	assert.Equal(t, int64(1), b)
+}
+
+func TestParallelRepeat(t *testing.T) {
+	a := int64(0)
+	b := int64(0)
+	n := 10
+
+	flow.ParallelRepeat(n, func() {
+		atomic.AddInt64(&a, 1)
+	}, func() {
+		atomic.AddInt64(&b, 1)
+	})
+
+	assert.Equal(t, int64(n), a)
+	assert.Equal(t, int64(n), b)
 }
