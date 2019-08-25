@@ -6,7 +6,7 @@ import (
 
 	"github.com/aerogo/flow"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/akyoto/assert"
 )
 
 func TestParallel(t *testing.T) {

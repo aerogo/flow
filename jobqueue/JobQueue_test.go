@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/aerogo/flow/jobqueue"
-	"github.com/stretchr/testify/assert"
+	"github.com/akyoto/assert"
 )
 
 func TestJobQueue(t *testing.T) {
